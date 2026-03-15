@@ -1,0 +1,28 @@
+{
+    "Navigation": {
+        "newArrivals": "New Arrivals",
+        "shirts": "Shirts",
+        "trousers": "Trousers",
+        "outerwear": "Outerwear",
+        "about": "About"
+    },
+    "Hero": {
+        "label": "Premium Contemporary Fashion",
+        "title": "Elevated Style for Every Occasion",
+        "subtitle": "Discover our curated collection of timeless pieces and modern designs",
+        "cta": "Explore Collection"
+    },
+    "Product": {
+        "viewDetails": "View Details"
+    },
+    "Footer": {
+        "shop": "Shop",
+        "help": "Help",
+        "about": "About",
+        "connect": "Connect",
+        "shipping": "Shipping",
+        "faq": "FAQ",
+        "sizeGuide": "Size Guide",
+        "contact": "Contact"
+    }
+}
