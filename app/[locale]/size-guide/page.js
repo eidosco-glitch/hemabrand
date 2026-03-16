@@ -90,7 +90,7 @@ export default function SizeGuide({ params }) {
 
     return (
         <main className="min-h-screen pt-20">
-            <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-16">
+            <div className="max-w-360 mx-auto px-6 lg:px-12 py-16">
                 <div className="max-w-xl">
                     <p className="text-[11px] uppercase tracking-[0.25em] text-[#A67B5B] mb-3">HEMA</p>
                     <h1 className="text-2xl md:text-3xl font-light text-[#1A1A1A] mb-10">{c.title}</h1>

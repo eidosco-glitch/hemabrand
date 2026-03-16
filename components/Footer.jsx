@@ -75,7 +75,7 @@ export function NewsletterSection({ locale }) {
 
   return (
     <section className="py-12 px-6 lg:px-12 bg-white border-t border-[#E8E0D8]" style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
-      <div className="max-w-[500px] mx-auto text-center">
+      <div className="max-w-125 mx-auto text-center">
         <h3 className="text-sm uppercase tracking-[0.25em] text-black mb-1" style={{ fontFamily: 'Maharlika' }}>{t.newsletter}</h3>
         <p className="text-xs text-[#999] mb-6">{t.newsletterSub}</p>
         {submitted ? (
@@ -107,7 +107,7 @@ export default function Footer({ locale }) {
 
   return (
     <footer className="bg-[#F5F5F5] py-10 px-6 lg:px-12" style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
-      <div className="max-w-[1440px] mx-auto">
+      <div className="max-w-360 mx-auto">
 
         {/* Main row */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8 mb-8">
@@ -115,8 +115,8 @@ export default function Footer({ locale }) {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Image src="/hemalogo.webp" alt="HEMA" width={32} height={32} className="object-contain" />
-              <p className="text-xl tracking-[0.1em] text-[#1A1A1A]" style={{ fontFamily: 'Maharlika' }}>HEMA</p>
+              <Image src="/hemalogo.webp" alt="HEMA" width={32} height={32} style={{ width: 'auto' }} className="object-contain" />
+              <p className="text-xl tracking-widest text-[#1A1A1A]" style={{ fontFamily: 'Maharlika' }}>HEMA</p>
             </div>
             <a href="mailto:contact.hemawear@gmail.com" className="text-xs text-[#666] hover:text-[#A67B5B] transition-colors">contact.hemawear@gmail.com</a>
             <p className="text-xs text-[#666] mt-1">Algiers, Algeria</p>

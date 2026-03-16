@@ -24,7 +24,7 @@ export default function Hero({ locale = 'en' }) {
   return (
     <section className="relative h-[75vh] flex flex-col items-center justify-end pt-14 lg:pt-20 pb-8 lg:pb-12">
       <Image
-        src="/hemaheroes.webp"
+        src="/hemahero.webp"
         alt="HEMA Collection"
         fill
         priority
@@ -46,7 +46,7 @@ export default function Hero({ locale = 'en' }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-[0.9] mb-2"
-          style={{ fontFamily: 'var(--font-playfair)' }}
+          style={{ fontFamily: isRTL ? 'var(--font-amiri)' : 'var(--font-playfair)' }}
         >
           {t.title}
         </motion.h1>

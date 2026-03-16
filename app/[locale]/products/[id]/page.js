@@ -11,11 +11,14 @@ import { wilayas } from '@/lib/wilayas'
 import { cloudinaryOptimized } from '@/lib/imageUtils'
 import { db } from '@/lib/firebase'
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, increment } from 'firebase/firestore'
+import { useAuth } from '@/context/AuthContext'
+import { useWishlist } from '@/context/WishlistContext'
 
 const translations = {
     ar: {
         backToProducts: 'العودة للمنتجات',
-        addToCart: 'أضف للسلة',
+        addToCart: 'الدفع',
+        checkout: 'الدفع',
         addToWishlist: 'أضف للمفضلة',
         price: 'السعر',
         originalPrice: 'السعر الأصلي',
@@ -30,8 +33,8 @@ const translations = {
         descriptionPlaceholder: 'أضف وصفك هنا...',
         washCareText: 'غسل بماء بارد. لا تستخدم الكلور. جفف بشكل طبيعي.',
         paymentMethod: 'طريقة الدفع',
-        cashDZD: 'نقداً DZD', name: 'الاسم (اختياري)',
-        surname: 'اللقب (اختياري)',
+        cashDZD: 'نقداً DZD', name: 'الاسم',
+        surname: 'اللقب',
         phone: 'الهاتف',
         wilaya: 'الولاية',
         commune: 'البلدية',
@@ -49,7 +52,8 @@ const translations = {
     },
     en: {
         backToProducts: 'Back to Products',
-        addToCart: 'Add to Cart',
+        addToCart: 'Check Out',
+        checkout: 'Check Out',
         addToWishlist: 'Add to Wishlist',
         price: 'Price',
         originalPrice: 'Original Price',
@@ -65,8 +69,8 @@ const translations = {
         washCareText: 'Wash in cold water. Do not bleach. Dry naturally.',
         paymentMethod: 'Payment Method',
         cashDZD: 'Cash DZD',
-        name: 'Name (optional)',
-        surname: 'Surname (optional)',
+        name: 'Name',
+        surname: 'Surname',
         phone: 'Phone',
         order: 'Order',
         wilaya: 'Wilaya',
@@ -112,6 +116,9 @@ export default function ProductDetail({ params: paramsPromise }) {
     const [product, setProduct] = useState(getProductById(id) || products[0])
     const [allProducts, setAllProducts] = useState(products)
     const t = translations[locale] || translations.ar
+    const { user } = useAuth() || {}
+    const { toggleWishlist, isInWishlist } = useWishlist() || {}
+    const [wishlistMsg, setWishlistMsg] = useState('')
 
     // Load live product data from Firestore
     useEffect(() => {
@@ -170,15 +177,15 @@ export default function ProductDetail({ params: paramsPromise }) {
     const [orderLoading, setOrderLoading] = useState(false)
     const [orderSuccess, setOrderSuccess] = useState(false)
 
-    // Delivery fee: 400 DA within Alger, 600 DA elsewhere, null until commune chosen
-    const deliveryFee = selectedCommune
-        ? (selectedWilaya === 'Alger' ? 400 : 600)
-        : null
-    const orderTotal = (product.price * quantity) + (deliveryFee ?? 0)
+    const orderTotal = product.price * quantity
     // placeholder for receiving account info that can be edited later
     const edahabiyaAccountInfo = 'IBAN: DZ00 0000 0000 0000 0000 0000';
 
     const handleSubmitOrder = async () => {
+        if (!custName) {
+            alert(locale === 'ar' ? 'يرجى إدخال الاسم' : 'Please enter your name')
+            return
+        }
         if (!custPhone) {
             alert(locale === 'ar' ? 'يرجى إدخال رقم الهاتف' : 'Please enter your phone number')
             return
@@ -206,7 +213,6 @@ export default function ProductDetail({ params: paramsPromise }) {
                 commune: selectedCommune,
                 address: addressDetails,
                 status: 'pending',
-                deliveryFee: deliveryFee ?? 0,
                 total: orderTotal,
                 locale,
                 createdAt: new Date(),
@@ -297,7 +303,7 @@ export default function ProductDetail({ params: paramsPromise }) {
 
     return (
         <main className="min-h-screen textured-bg pt-16 sm:pt-20 pb-20">
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-12">
+            <div className="max-w-360 mx-auto px-4 sm:px-6 lg:px-12">
                 {/* Product Detail */}
                 <motion.div
                     initial={{ opacity: 0 }}
@@ -305,9 +311,9 @@ export default function ProductDetail({ params: paramsPromise }) {
                     className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-8 lg:mb-12"
                 >
                     {/* Image Carousel */}
-                    <div className="border border-[#D1CCC6] p-[6px]">
+                    <div className="border border-[#D1CCC6] p-1.5">
                         <div
-                            className="relative overflow-hidden aspect-[4/5] bg-[#F0F0F0] cursor-grab active:cursor-grabbing select-none"
+                            className="relative overflow-hidden aspect-4/5 bg-[#F0F0F0] cursor-grab active:cursor-grabbing select-none"
                             onMouseDown={handleDragStart}
                             onMouseMove={handleDragMove}
                             onMouseUp={handleDragEnd}
@@ -326,7 +332,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                                 {productImages.map((imgSrc, idx) => (
                                     <div
                                         key={idx}
-                                        className="relative h-full flex-shrink-0"
+                                        className="relative h-full shrink-0"
                                         style={{ width: `${100 / Math.max(productImages.length, 1)}%` }}
                                     >
                                         <Image
@@ -349,7 +355,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                                         <button
                                             key={idx}
                                             onClick={() => setCurrentImageIndex(idx)}
-                                            className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-[#000] scale-125' : 'bg-[#999]'}`}
+                                            className={`w-1.5 h-1.5 rounded-full transition-all ${idx === currentImageIndex ? 'bg-black scale-125' : 'bg-[#999]'}`}
                                         />
                                     ))}
                                 </div>
@@ -447,7 +453,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                                 }
                             </p>
                         )}
-                        <div className="flex gap-2 sm:gap-4 pt-2 sm:pt-4">
+                        <div className="relative flex gap-2 sm:gap-4 pt-2 sm:pt-4">
                             <button
                                 onClick={() => setShowOrderForm(true)}
                                 disabled={(colors.length > 1 && !selectedColor) || (sizes.length > 1 && !selectedSize)}
@@ -456,67 +462,85 @@ export default function ProductDetail({ params: paramsPromise }) {
                                 <ShoppingBag size={18} />
                                 {t.addToCart}
                             </button>
-                            <button className="p-3 sm:p-4 border border-[#D1CCC6] text-[#000000] hover:border-[#A67B5B] transition-colors">
-                                <Heart size={18} />
+                            <button
+                                onClick={async () => {
+                                    if (!user) {
+                                        setWishlistMsg(locale === 'ar' ? 'سجّل دخولك لحفظ المنتجات' : 'Sign in to save items')
+                                        setTimeout(() => setWishlistMsg(''), 2500)
+                                        return
+                                    }
+                                    await toggleWishlist(product.id)
+                                }}
+                                className={`p-3 sm:p-4 border transition-colors ${isInWishlist?.(product.id)
+                                        ? 'border-[#A67B5B] text-[#A67B5B] bg-[#FDF6F0]'
+                                        : 'border-[#D1CCC6] text-[#000000] hover:border-[#A67B5B]'
+                                    }`}
+                                aria-label={isInWishlist?.(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                            >
+                                <Heart size={18} fill={isInWishlist?.(product.id) ? '#A67B5B' : 'none'} />
                             </button>
+                            {wishlistMsg && (
+                                <p className="absolute -bottom-6 right-0 text-[10px] text-[#A67B5B] whitespace-nowrap">{wishlistMsg}</p>
+                            )}
                         </div>
 
                         {/* Order Form Modal */}
                         {showOrderForm && (
-                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-100 p-4">
                                 <div className="bg-white rounded max-w-md w-full max-h-[90vh] flex flex-col">
-                                    <div className="flex items-center justify-between p-5 pb-3 border-b border-[#eee] flex-shrink-0">
+                                    <div className="flex items-center justify-between p-5 pb-3 border-b border-[#eee] shrink-0">
                                         <h3 className="text-lg font-medium">{t.order}</h3>
                                         <button
                                             onClick={() => setShowOrderForm(false)}
-                                            className="p-1 hover:bg-gray-100 rounded-full transition-colors text-[#666] hover:text-[#000]"
+                                            className="p-1 hover:bg-gray-100 rounded-full transition-colors text-[#666] hover:text-black"
                                         >
                                             <X size={22} />
                                         </button>
                                     </div>
                                     <div className="space-y-3 overflow-y-auto p-5 pt-3">
                                         <div className="flex flex-col">
-                                            <label className="text-xs text-[#000] mb-1">{t.name}</label>
+                                            <label className="text-xs text-black mb-1">{t.name} <span className="text-[#A67B5B]">*</span></label>
                                             <input
                                                 type="text"
                                                 placeholder={t.name}
                                                 value={custName}
                                                 onChange={(e) => setCustName(e.target.value)}
-                                                className="w-full border border-[#D1CCC6] p-2 text-[#000] placeholder:text-[#666]"
+                                                required
+                                                className="w-full border border-[#D1CCC6] p-2 text-black placeholder:text-[#666]"
                                             />
                                         </div>
                                         <div className="flex flex-col mt-2">
-                                            <label className="text-xs text-[#000] mb-1">{t.surname}</label>
+                                            <label className="text-xs text-black mb-1">{t.surname}</label>
                                             <input
                                                 type="text"
                                                 placeholder={t.surname}
                                                 value={custSurname}
                                                 onChange={(e) => setCustSurname(e.target.value)}
-                                                className="w-full border border-[#D1CCC6] p-2 text-[#000] placeholder:text-[#666]"
+                                                className="w-full border border-[#D1CCC6] p-2 text-black placeholder:text-[#666]"
                                             />
                                         </div>
                                         <div className="flex flex-col mt-2">
-                                            <label className="text-xs text-[#000] mb-1">{t.phone}</label>
+                                            <label className="text-xs text-black mb-1">{t.phone}</label>
                                             <input
                                                 type="text"
                                                 placeholder={t.phone}
                                                 value={custPhone}
                                                 onChange={(e) => setCustPhone(e.target.value)}
-                                                className="w-full border border-[#D1CCC6] p-2 text-[#000] placeholder:text-[#666]"
+                                                className="w-full border border-[#D1CCC6] p-2 text-black placeholder:text-[#666]"
                                                 required
                                             />
                                         </div>
                                         {/* address fields */}
                                         <div className="flex gap-2 mt-2">
                                             <div className="flex flex-col flex-1">
-                                                <label className="text-xs text-[#000] mb-1">{t.wilaya}</label>
+                                                <label className="text-xs text-black mb-1">{t.wilaya}</label>
                                                 <select
                                                     value={selectedWilaya}
                                                     onChange={(e) => {
                                                         setSelectedWilaya(e.target.value)
                                                         setSelectedCommune('')
                                                     }}
-                                                    className="w-full border border-[#D1CCC6] p-2 text-[#000]"
+                                                    className="w-full border border-[#D1CCC6] p-2 text-black"
                                                 >
                                                     <option value="">{t.wilaya}</option>
                                                     {wilayas.map((w) => (
@@ -527,11 +551,11 @@ export default function ProductDetail({ params: paramsPromise }) {
                                                 </select>
                                             </div>
                                             <div className="flex flex-col flex-1 ml-2">
-                                                <label className="text-xs text-[#000] mb-1">{t.commune}</label>
+                                                <label className="text-xs text-black mb-1">{t.commune}</label>
                                                 <select
                                                     value={selectedCommune}
                                                     onChange={(e) => setSelectedCommune(e.target.value)}
-                                                    className="w-full border border-[#D1CCC6] p-2 text-[#000]"
+                                                    className="w-full border border-[#D1CCC6] p-2 text-black"
                                                     disabled={!selectedWilaya}
                                                 >
                                                     <option value="">{t.commune}</option>
@@ -547,18 +571,18 @@ export default function ProductDetail({ params: paramsPromise }) {
                                         </div>
                                         <div className="relative mt-2">
                                             <div className="flex flex-col">
-                                                <label className="text-xs text-[#000] mb-1">{t.address}</label>
+                                                <label className="text-xs text-black mb-1">{t.address}</label>
                                                 <div className="relative">
                                                     <input
                                                         type="text"
                                                         placeholder={t.address}
                                                         value={addressDetails}
                                                         onChange={(e) => setAddressDetails(e.target.value)}
-                                                        className="w-full border border-[#D1CCC6] p-2 text-[#000] placeholder:text-[#666]"
+                                                        className={`w-full border border-[#D1CCC6] p-2 text-black placeholder:text-[#666] ${isArabic ? 'pr-2 pl-16' : 'pl-2 pr-16'}`}
                                                     />
                                                     <button
                                                         onClick={fetchGPSLocation}
-                                                        className="absolute right-2 top-2 text-xs text-[#A67B5B]"
+                                                        className={`absolute top-1/2 -translate-y-1/2 text-xs text-[#A67B5B] ${isArabic ? 'left-2' : 'right-2'}`}
                                                     >
                                                         {t.useGPS}
                                                     </button>
@@ -570,7 +594,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => setPaymentMethod('cashDZD')}
-                                                    className={`flex-1 border py-1 px-2 text-xs ${paymentMethod === 'cashDZD' ? 'bg-[#000] text-white' : ''}`}
+                                                    className={`flex-1 border py-1 px-2 text-xs ${paymentMethod === 'cashDZD' ? 'bg-black text-white' : ''}`}
                                                 >
                                                     {t.cashDZD}
                                                 </button>
@@ -579,27 +603,9 @@ export default function ProductDetail({ params: paramsPromise }) {
 
                                         {/* Price summary */}
                                         <div className="border-t border-[#eee] pt-3 mt-1 space-y-1.5">
-                                            <div className="flex justify-between text-xs text-[#555]">
+                                            <div className="flex justify-between text-sm font-semibold text-black">
                                                 <span>{t.productPrice} {quantity > 1 ? `× ${quantity}` : ''}</span>
-                                                <span>{(product.price * quantity).toLocaleString()} DA</span>
                                             </div>
-                                            {deliveryFee !== null ? (
-                                                <div className="flex justify-between text-xs text-[#555]">
-                                                    <span>{t.delivery}</span>
-                                                    <span>{deliveryFee.toLocaleString()} DA</span>
-                                                </div>
-                                            ) : selectedWilaya ? (
-                                                <div className="flex justify-between text-xs text-[#999]">
-                                                    <span>{t.delivery}</span>
-                                                    <span>{locale === 'ar' ? 'اختر البلدية' : 'Select commune'}</span>
-                                                </div>
-                                            ) : null}
-                                            {deliveryFee !== null && (
-                                                <div className="flex justify-between text-sm font-semibold text-[#000] border-t border-[#eee] pt-2 mt-1">
-                                                    <span>{t.total}</span>
-                                                    <span>{orderTotal.toLocaleString()} DA</span>
-                                                </div>
-                                            )}
                                         </div>
 
                                         {orderSuccess ? (
@@ -610,7 +616,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                                             <button
                                                 onClick={handleSubmitOrder}
                                                 disabled={orderLoading}
-                                                className="w-full bg-[#000] text-white py-2 mt-4 disabled:opacity-50"
+                                                className="w-full bg-black text-white py-2 mt-4 disabled:opacity-50"
                                             >
                                                 {orderLoading
                                                     ? (locale === 'ar' ? 'جاري الإرسال...' : 'Submitting...')
@@ -675,16 +681,19 @@ export default function ProductDetail({ params: paramsPromise }) {
                                 >
                                     <Link href={`/${locale}/products/${p.id}`}
                                         className="block"
+                                        prefetch={false}
                                     >
-                                        <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 mb-2 sm:mb-4">
-                                            <Image
-                                                src={cloudinaryOptimized(p.imageUrl || p.images?.[0] || p.image || '')}
-                                                alt={isArabic ? (p.nameAr || p.name || '') : (p.nameEn || p.name_en || p.name || '')}
-                                                fill
-                                                unoptimized
-                                                className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                                            />
+                                        <div className="relative aspect-4/5 overflow-hidden bg-gray-100 mb-2 sm:mb-4">
+                                            {(p.imageUrl || p.images?.[0] || p.image) && (
+                                                <Image
+                                                    src={cloudinaryOptimized(p.imageUrl || p.images?.[0] || p.image)}
+                                                    alt={isArabic ? (p.nameAr || p.name || '') : (p.nameEn || p.name_en || p.name || '')}
+                                                    fill
+                                                    unoptimized
+                                                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                                />
+                                            )}
                                         </div>
                                         <h3 className="text-xs sm:text-sm font-normal text-[#000000]">{isArabic ? (p.nameAr || p.name || '') : (p.nameEn || p.name_en || p.name || '')}</h3>
                                         <span className="text-xs sm:text-sm text-[#000000]">DA {p.price}</span>
@@ -697,7 +706,7 @@ export default function ProductDetail({ params: paramsPromise }) {
 
                 {/* Size Chart Modal */}
                 {showSizeChart && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-100 p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -741,7 +750,7 @@ export default function ProductDetail({ params: paramsPromise }) {
 
                 {/* Custom Description Modal */}
                 {false && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-100 p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}

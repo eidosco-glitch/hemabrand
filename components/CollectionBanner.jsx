@@ -6,8 +6,8 @@ import { ArrowRight, ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 
 const slides = [
-    { image: '/newcollection.webp' },
-    { image: '/newcollection1.webp' },
+    { image: '/limiteddrop.webp' },
+    { image: '/limiteddrop1.webp' },
 ]
 
 export default function CollectionBanner({ locale }) {

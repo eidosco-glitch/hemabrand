@@ -49,7 +49,7 @@ export default async function Home({ params }) {
 
             {/* Tagline */}
             <section className="pt-10 pb-4 px-6 text-center bg-white">
-                <p className="text-2xl md:text-3xl font-light text-black tracking-wide max-w-2xl mx-auto" style={{ fontFamily: 'Maharlika' }}>
+                <p className="text-2xl md:text-3xl font-light text-black tracking-wide max-w-2xl mx-auto" style={{ fontFamily: isRTL ? 'var(--font-amiri)' : 'Maharlika' }}>
                     {b.tagline}
                 </p>
                 <div className="mx-auto mt-6 h-px w-24 bg-[#D1CCC6]" />

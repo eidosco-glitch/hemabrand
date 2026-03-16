@@ -54,9 +54,9 @@ export default function ProductCard({ product, index, locale }) {
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className="group cursor-pointer"
     >
-      <Link href={`/${locale}/products/${product.id}`} className="block">
+      <Link href={`/${locale}/products/${product.id}`} className="block" prefetch={false}>
         {/* Image Container */}
-        <div className="relative aspect-[4/5] overflow-hidden bg-[#F5F5F5] mb-3">
+        <div className="relative aspect-4/5 overflow-hidden bg-[#F5F5F5] mb-3">
           {(product.imageUrl || product.images?.[0] || product.image) ? (
             <Image
               src={cloudinaryOptimized(product.imageUrl || product.images?.[0] || product.image)}
@@ -87,7 +87,7 @@ export default function ProductCard({ product, index, locale }) {
             className={`absolute bottom-3 right-3 w-6 h-6 flex items-center justify-center transition-all duration-300 ${isSoldOut ? 'opacity-0 pointer-events-none' : 'hover:scale-125'}`}
             title={t.addToCart}
           >
-            <Plus size={24} className="text-[#000]" strokeWidth={1} />
+            <Plus size={24} className="text-black" strokeWidth={1} />
           </button>
 
           {/* Size Panel - slides up from bottom */}
@@ -106,10 +106,10 @@ export default function ProductCard({ product, index, locale }) {
                 onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-[9px] uppercase tracking-[0.25em] text-[#000] font-medium">{t.selectSize}</span>
+                  <span className="text-[9px] uppercase tracking-[0.25em] text-black font-medium">{t.selectSize}</span>
                   <button
                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowSizePanel(false) }}
-                    className="text-[#888] hover:text-[#000] transition-colors"
+                    className="text-[#888] hover:text-black transition-colors"
                   >
                     <X size={13} strokeWidth={1.5} />
                   </button>
@@ -119,7 +119,7 @@ export default function ProductCard({ product, index, locale }) {
                     <button
                       key={size}
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSizeSelect(size) }}
-                      className="flex-1 min-w-[32px] py-2.5 border border-[#1A1A1A] text-[10px] font-medium uppercase tracking-[0.1em] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white transition-all duration-150"
+                      className="flex-1 min-w-8 py-2.5 border border-[#1A1A1A] text-[10px] font-medium uppercase tracking-widest text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-white transition-all duration-150"
                     >
                       {size}
                     </button>

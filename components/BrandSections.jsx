@@ -37,7 +37,7 @@ function Accordion({ title, body, readMoreHref, readMoreLabel, isRTL }) {
 export default function BrandSections({ locale, b, isRTL }) {
     return (
         <section className="py-10 px-6 lg:px-12 bg-white">
-            <div className="max-w-[900px] mx-auto">
+            <div className="max-w-225 mx-auto">
                 <Accordion
                     title={b.storyTitle}
                     body={b.storyBody}

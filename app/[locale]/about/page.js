@@ -101,7 +101,7 @@ function Accordion({ title, body }) {
     <div className="border-t border-[#D1CCC6]">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-4 text-xs uppercase tracking-[0.12em] text-[#000] hover:text-[#A67B5B] transition-colors"
+        className="w-full flex items-center justify-between py-4 text-xs uppercase tracking-[0.12em] text-black hover:text-[#A67B5B] transition-colors"
       >
         <span className="font-medium">{title}</span>
         <span className="text-lg leading-none">{open ? '−' : '+'}</span>
@@ -122,7 +122,7 @@ export default function About({ params: paramsPromise }) {
 
   return (
     <main className="min-h-screen pt-20">
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-16">
+      <div className="max-w-360 mx-auto px-6 lg:px-12 py-16">
         <div className="max-w-xl">
           <p className="text-[11px] uppercase tracking-[0.25em] text-[#A67B5B] mb-4">HEMA</p>
           <h1 className="text-2xl md:text-3xl font-light text-[#1A1A1A] mb-8 leading-snug">

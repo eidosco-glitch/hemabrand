@@ -1,12 +1,15 @@
 import './globals.css'
-import { Inter, Cairo, Playfair_Display } from 'next/font/google'
+import { Inter, Cairo, Playfair_Display, Amiri } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import NavigationWrapper from '@/components/NavigationWrapper'
 import Footer, { NewsletterSection } from '@/components/Footer'
+import { AuthProvider } from '@/context/AuthContext'
+import { WishlistProvider } from '@/context/WishlistContext'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 const cairo = Cairo({ subsets: ['arabic'], variable: '--font-cairo', display: 'swap', preload: false })
 const playfairDisplay = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair', display: 'swap', preload: false })
+const amiri = Amiri({ subsets: ['arabic'], weight: ['400', '700'], variable: '--font-amiri', display: 'swap', preload: false })
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ar' }]
@@ -41,14 +44,19 @@ export default async function RootLayout({ children, params }) {
   return (
     <html lang={lang} dir={dir} suppressHydrationWarning>
       <head>
-        <link rel="preload" as="image" href="/hemaheroes.webp" fetchPriority="high" />
+        <link rel="preload" as="image" href="/hemahero.webp" fetchPriority="high" />
       </head>
-      <body className={`${inter.variable} ${cairo.variable} ${playfairDisplay.variable} font-sans antialiased bg-paper text-text`}>
+      <body className={`${inter.variable} ${cairo.variable} ${playfairDisplay.variable} ${amiri.variable} font-sans antialiased bg-paper text-text`}>
         <NextIntlClientProvider locale={locale}>
-          <NavigationWrapper locale={locale} />
-          {children}
-          <NewsletterSection locale={locale} />
-          <Footer locale={locale} />        </NextIntlClientProvider>
+          <AuthProvider>
+            <WishlistProvider>
+              <NavigationWrapper locale={locale} />
+              {children}
+              <NewsletterSection locale={locale} />
+              <Footer locale={locale} />
+            </WishlistProvider>
+          </AuthProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

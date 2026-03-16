@@ -16,13 +16,13 @@ export const metadata = {
   description: 'Browse our premium shirt collection',
 }
 
-export default function Shirts({ params }) {
-  const { locale } = params
+export default async function Shirts({ params }) {
+  const { locale } = await params
   const t = translations[locale] || translations.en
 
   return (
     <main className="min-h-screen pt-20">
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-12">
+      <div className="max-w-360 mx-auto px-6 lg:px-12 py-12">
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-light mb-4">{t.title}</h1>
           <p className="text-muted text-lg">{t.description}</p>
