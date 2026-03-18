@@ -68,7 +68,7 @@ export default async function Home({ params }) {
                 <div className="mx-auto mt-6 h-px w-24 bg-[#D1CCC6]" />
             </section>
 
-            <ProductGrid locale={locale} category="Outfit" />
+            <ProductGrid locale={locale} />
             <CollectionBanner locale={locale} />
             <BrandSections locale={locale} b={b} isRTL={isRTL} />
         </main>
