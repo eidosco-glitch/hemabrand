@@ -6,7 +6,7 @@ import BrandSections from '@/components/BrandSections'
 export const revalidate = 3600 // re-generate page at most once per hour
 
 export function generateStaticParams() {
-    return [{ locale: 'en' }, { locale: 'ar' }]
+    return [{ locale: 'en' }, { locale: 'ar' }, { locale: 'fr' }]
 }
 
 const brandContent = {
@@ -24,7 +24,7 @@ const brandContent = {
         ],
     },
     en: {
-        tagline: '"HEMA has its people… and you are one of them."',
+        tagline: '"HEMA has its own people... and you are one of them."',
         storyTitle: 'Our Story',
         storyBody: 'HEMA was born from a shared passion between two friends who grew up in the streets of Algiers. We wanted a brand that merges global streetwear energy with the pride that defines Algerian youth — turning "Himma" from a word we inherited into a lifestyle we wear every day.',
         readMore: 'Read More',
@@ -34,6 +34,19 @@ const brandContent = {
             { title: 'Authenticity', desc: 'Respecting our roots and showing our true selves.' },
             { title: 'Creativity', desc: 'A unique, modern touch in every design.' },
             { title: 'Community', desc: 'Building a network of ambitious, creative youth.' },
+        ],
+    },
+    fr: {
+        tagline: '"HEMA a ses gens... et vous en faites partie."',
+        storyTitle: 'Notre Histoire',
+        storyBody: 'HEMA est né d\'une passion partagée entre deux amis qui ont grandi dans les rues d\'Alger. Nous voulions une marque qui fusionne l\'énergie du streetwear mondial avec la fierté qui définit la jeunesse algérienne — transformant "Hemma" d\'un mot hérité en un style de vie que nous portons tous les jours.',
+        readMore: 'Lire Plus',
+        valuesTitle: 'Nos Valeurs',
+        values: [
+            { title: 'Hema', desc: 'Ambition et confiance en soi à chaque étape.' },
+            { title: 'Authenticité', desc: 'Respecter nos racines et montrer notre vraie nature.' },
+            { title: 'Créativité', desc: 'Une touche unique et moderne dans chaque design.' },
+            { title: 'Communauté', desc: 'Construire un réseau de jeunes ambitieux et créatifs.' },
         ],
     },
 }
@@ -55,7 +68,7 @@ export default async function Home({ params }) {
                 <div className="mx-auto mt-6 h-px w-24 bg-[#D1CCC6]" />
             </section>
 
-            <ProductGrid locale={locale} />
+            <ProductGrid locale={locale} category="Outfit" />
             <CollectionBanner locale={locale} />
             <BrandSections locale={locale} b={b} isRTL={isRTL} />
         </main>

@@ -26,6 +26,13 @@ const ui = {
         remove: 'Remove',
         shop: 'Shop Now',
     },
+    fr: {
+        title: 'Liste de Souhaits',
+        empty: 'Votre liste est vide',
+        emptySub: 'Enregistrez les articles que vous aimez en appuyant sur le cœur',
+        remove: 'Retirer',
+        shop: 'Acheter Maintenant',
+    },
 }
 
 export default function WishlistOverlay({ locale, isOpen, onClose }) {
@@ -61,7 +68,9 @@ export default function WishlistOverlay({ locale, isOpen, onClose }) {
     const getDisplayName = (p) =>
         locale === 'ar'
             ? (p.nameAr || p.name || p.nameEn || p.name_en || '')
-            : (p.nameEn || p.name_en || p.nameAr || p.name || '')
+            : locale === 'fr'
+                ? (p.nameFr || p.nameEn || p.name_en || p.name || '')
+                : (p.nameEn || p.name_en || p.nameAr || p.name || '')
 
     const getImageSrc = (p) => p.imageUrl || p.images?.[0] || p.image || null
 

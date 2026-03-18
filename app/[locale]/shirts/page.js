@@ -8,6 +8,10 @@ const translations = {
   en: {
     title: 'Shirts',
     description: 'Exclusive collection of luxury shirts',
+  },
+  fr: {
+    title: 'Chemises',
+    description: 'Collection exclusive de chemises de luxe',
   }
 }
 
@@ -27,7 +31,7 @@ export default async function Shirts({ params }) {
           <h1 className="text-4xl md:text-5xl font-light mb-4">{t.title}</h1>
           <p className="text-muted text-lg">{t.description}</p>
         </div>
-        <ProductGrid locale={locale} category="shirts" />
+        <ProductGrid locale={locale} category="Top" />
       </div>
     </main>
   )

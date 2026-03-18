@@ -24,7 +24,7 @@
 body {
   background: #FFFFFF;
   color: var(--foreground);
-  font-family: var(--font-inter), var(--font-cairo), system-u i, sans-serif;
+  font-family: var(--font-inter), var(--font-cairo), system-ui, sans-serif;
   overflow-x: hidden;
 }
 

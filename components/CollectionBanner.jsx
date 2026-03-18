@@ -71,13 +71,13 @@ export default function CollectionBanner({ locale }) {
                     HEMA — 2026
                 </p>
                 <h2 className="text-lg sm:text-2xl md:text-3xl font-light leading-tight mb-5 tracking-normal">
-                    {locale === 'ar' ? 'إصدار محدود' : 'Limited Drop'}
+                    {locale === 'ar' ? 'إصدار محدود' : locale === 'fr' ? 'Édition Limitée' : 'Limited Drop'}
                 </h2>
                 <a
                     href={`/${locale}/new-arrivals`}
                     className="inline-flex items-center gap-2 px-7 py-3 bg-black/80 hover:bg-black border border-white/20 text-[10px] uppercase tracking-[0.15em] transition-all group"
                 >
-                    {locale === 'ar' ? 'اطلب الآن' : 'Order Now'}
+                    {locale === 'ar' ? 'اطلب الآن' : locale === 'fr' ? 'Commander' : 'Order Now'}
                     <Arrow size={11} className="group-hover:translate-x-0.5 transition-transform" />
                 </a>
             </div>

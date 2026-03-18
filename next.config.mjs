@@ -46,3 +46,4 @@ const nextConfig = {
 }
 
 export default withNextIntl(nextConfig)
+// Trigger rebuild 03/18/2026 04:30:31

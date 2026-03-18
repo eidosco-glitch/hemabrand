@@ -49,6 +49,23 @@ const ui = {
         passwordMismatch: "Passwords don't match",
         googleAccount: 'Your account is linked to Google — password cannot be changed here.',
     },
+    fr: {
+        title: 'Paramètres',
+        profile: 'Profil',
+        security: 'Sécurité',
+        displayName: 'Nom Complet',
+        saveChanges: 'Enregistrer les modifications',
+        currentPassword: 'Mot de passe actuel',
+        newPassword: 'Nouveau mot de passe',
+        confirmNewPassword: 'Confirmer le nouveau mot de passe',
+        changePassword: 'Changer le mot de passe',
+        dangerZone: 'Zone de Danger',
+        deleteAccount: 'Supprimer le compte',
+        deleteConfirm: 'Entrez votre mot de passe pour confirmer. Cette action est irréversible.',
+        deleteBtn: 'Supprimer mon compte définitivement',
+        passwordMismatch: 'Les mots de passe ne correspondent pas',
+        googleAccount: 'Votre compte est lié à Google — le mot de passe ne peut pas être changé ici.',
+    },
 }
 
 function friendlyError(code) {

@@ -11,7 +11,9 @@ const translations = {
     newArrivals: 'المجموعة الجديدة',
     shirts: 'القمصان',
     trousers: 'السراويل',
-    outerwear: 'السترات',
+    contact: 'اتصل بنا',
+    shop: 'المتجر',
+    info: 'معلومات',
     rights: 'جميع الحقوق محفوظة',
     newsletter: 'كن أول من يعلم',
     newsletterSub: 'اشترك لتصلك آخر الإصدارات والعروض الحصرية.',
@@ -25,13 +27,31 @@ const translations = {
     newArrivals: 'New Arrivals',
     shirts: 'Shirts',
     trousers: 'Trousers',
-    outerwear: 'Outerwear',
+    contact: 'Contact',
+    shop: 'Shop',
+    info: 'Info',
     rights: 'All Rights Reserved',
     newsletter: 'Be the first to know',
     newsletterSub: 'Subscribe for new drops and exclusive offers.',
     placeholder: 'Your email address',
     subscribe: 'Subscribe',
     thanks: 'Thanks! We\'ll keep you posted.',
+  },
+  fr: {
+    sizeGuide: 'Guide des Tailles',
+    ourStory: 'Notre Histoire',
+    newArrivals: 'Nouveautés',
+    shirts: 'Chemises',
+    trousers: 'Pantalons',
+    contact: 'Contact',
+    shop: 'Boutique',
+    info: 'Info',
+    rights: 'Tous droits réservés',
+    newsletter: 'Soyez le premier informé',
+    newsletterSub: 'Abonnez-vous pour les nouvelles sorties et offres exclusives.',
+    placeholder: 'Votre adresse e-mail',
+    subscribe: 'S\'abonner',
+    thanks: 'Merci ! Nous vous tiendrons au courant.',
   }
 }
 
@@ -67,10 +87,24 @@ export function NewsletterSection({ locale }) {
   const isRTL = locale === 'ar'
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (email) setSubmitted(true)
+    if (!email) return
+    try {
+      const { db } = await import('@/lib/firebase')
+      const { collection, addDoc } = await import('firebase/firestore')
+      await addDoc(collection(db, 'subscribers'), {
+        email,
+        locale,
+        subscribedAt: new Date(),
+      })
+      setSubmitted(true)
+    } catch {
+      setError(true)
+      setTimeout(() => setError(false), 3000)
+    }
   }
 
   return (
@@ -107,7 +141,7 @@ export default function Footer({ locale }) {
 
   return (
     <footer className="bg-[#F5F5F5] py-10 px-6 lg:px-12" style={{ direction: isRTL ? 'rtl' : 'ltr' }}>
-      <div className="max-w-360 mx-auto">
+      <div className="w-full mx-auto">
 
         {/* Main row */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8 mb-8">
@@ -131,20 +165,19 @@ export default function Footer({ locale }) {
           {/* Links */}
           <div className="flex flex-wrap gap-x-10 gap-y-4">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#999] mb-3">Shop</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#999] mb-3">{t.shop}</p>
               <ul className="space-y-2 text-xs text-[#333]">
                 <li><Link href={`/${locale}/new-arrivals`} className="hover:text-[#A67B5B] transition-colors">{t.newArrivals}</Link></li>
                 <li><Link href={`/${locale}/shirts`} className="hover:text-[#A67B5B] transition-colors">{t.shirts}</Link></li>
                 <li><Link href={`/${locale}/trousers`} className="hover:text-[#A67B5B] transition-colors">{t.trousers}</Link></li>
-                <li><Link href={`/${locale}/outerwear`} className="hover:text-[#A67B5B] transition-colors">{t.outerwear}</Link></li>
               </ul>
             </div>
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[#999] mb-3">Info</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[#999] mb-3">{t.info}</p>
               <ul className="space-y-2 text-xs text-[#333]">
                 <li><Link href={`/${locale}/about`} className="hover:text-[#A67B5B] transition-colors">{t.ourStory}</Link></li>
                 <li><Link href={`/${locale}/size-guide`} className="hover:text-[#A67B5B] transition-colors">{t.sizeGuide}</Link></li>
-                <li><Link href={`/${locale}/contact`} className="hover:text-[#A67B5B] transition-colors">Contact</Link></li>
+                <li><Link href={`/${locale}/contact`} className="hover:text-[#A67B5B] transition-colors">{t.contact}</Link></li>
               </ul>
             </div>
           </div>

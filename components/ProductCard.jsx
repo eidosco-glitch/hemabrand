@@ -20,6 +20,11 @@ const translations = {
     addToCart: 'Add to Cart',
     selectSize: 'Select Size',
     size: 'Size'
+  },
+  fr: {
+    addToCart: 'Ajouter au panier',
+    selectSize: 'Choisir la taille',
+    size: 'Taille'
   }
 }
 
@@ -30,7 +35,9 @@ export default function ProductCard({ product, index, locale }) {
 
   const displayName = locale === 'ar'
     ? (product.nameAr || product.name || product.name_en || '')
-    : (product.name_en || product.nameEn || product.name || '')
+    : locale === 'fr'
+      ? (product.nameFr || product.name_en || product.nameEn || product.name || '')
+      : (product.name_en || product.nameEn || product.name || '')
 
   const productSizes = (product.sizes && product.sizes.length > 0) ? product.sizes : fallbackSizes
   const isSoldOut = product.stock === 0 || product.inStock === false
@@ -75,7 +82,7 @@ export default function ProductCard({ product, index, locale }) {
           {isSoldOut && (
             <div className="absolute inset-0 bg-white/70 z-40 flex items-center justify-center">
               <span className="text-[10px] uppercase tracking-[0.3em] font-medium text-[#1A1A1A] border border-[#1A1A1A] px-3 py-1.5">
-                {locale === 'ar' ? 'نفذ المخزون' : 'Sold Out'}
+                {locale === 'ar' ? 'نفذ المخزون' : locale === 'fr' ? 'ÉPUISÉ' : 'SOLD OUT'}
               </span>
             </div>
           )}
@@ -136,7 +143,7 @@ export default function ProductCard({ product, index, locale }) {
             {displayName}
           </h4>
           <span className="text-[10px] md:text-[11px] text-[#1A1A1A] font-medium tracking-[0.05em] whitespace-nowrap">
-            {product.price.toLocaleString()} DA
+            {(product.price || 0).toLocaleString()} DA
           </span>
         </div>
       </Link>

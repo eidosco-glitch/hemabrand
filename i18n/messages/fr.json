@@ -1,0 +1,28 @@
+{
+    "Navigation": {
+        "newArrivals": "Nouveautés",
+        "shirts": "Chemises",
+        "trousers": "Pantalons",
+        "outerwear": "Vêtements d'extérieur",
+        "about": "À propos"
+    },
+    "Hero": {
+        "label": "Mode Contemporaine Premium",
+        "title": "Un Style Élégant pour Chaque Occasion",
+        "subtitle": "Découvrez notre collection de pièces intemporelles et de designs modernes",
+        "cta": "Explorer la Collection"
+    },
+    "Product": {
+        "viewDetails": "Voir les Détails"
+    },
+    "Footer": {
+        "shop": "Boutique",
+        "help": "Aide",
+        "about": "À propos",
+        "connect": "Connecter",
+        "shipping": "Livraison",
+        "faq": "FAQ",
+        "sizeGuide": "Guide des Tailles",
+        "contact": "Contact"
+    }
+}

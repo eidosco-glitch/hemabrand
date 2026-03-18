@@ -1,7 +1,8 @@
 'use client'
 
-import { use, useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, use, Suspense, useMemo } from 'react'
+import { useParams, useSearchParams, usePathname } from 'next/navigation'
+import { useLocale } from 'next-intl'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -13,6 +14,7 @@ import { db } from '@/lib/firebase'
 import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, increment } from 'firebase/firestore'
 import { useAuth } from '@/context/AuthContext'
 import { useWishlist } from '@/context/WishlistContext'
+import AuthOverlay from '@/components/AuthOverlay'
 
 const translations = {
     ar: {
@@ -49,6 +51,11 @@ const translations = {
         productPrice: 'سعر المنتج',
         delivery: 'التوصيل',
         total: 'المجموع',
+        headingSize: 'المقاس',
+        headingChest: 'الصدر',
+        headingWaist: 'الخصر',
+        headingLength: 'الطول',
+        invalidPhone: 'رقم هاتف غير صالح. يجب أن يبدأ بـ 05 أو 06 أو 07 ويتكون من 10 أرقام.',
     },
     en: {
         backToProducts: 'Back to Products',
@@ -85,6 +92,52 @@ const translations = {
         productPrice: 'Product Price',
         delivery: 'Delivery',
         total: 'Total',
+        headingSize: 'Size',
+        headingChest: 'Chest',
+        headingWaist: 'Waist',
+        headingLength: 'Length',
+        invalidPhone: 'Invalid phone number. Must start with 05, 06, or 07 and be 10 digits.',
+    },
+    fr: {
+        backToProducts: 'Retour aux Produits',
+        addToCart: 'Commander',
+        checkout: 'Payer',
+        addToWishlist: 'Ajouter aux favoris',
+        price: 'Prix',
+        originalPrice: 'Prix Original',
+        relatedProducts: 'Produits Similaires',
+        color: 'Choisir la couleur',
+        size: 'Taille',
+        quantity: 'Quantité',
+        sizeChart: 'Guide des Tailles',
+        close: 'Fermer',
+        description: 'Description',
+        washCare: 'Entretien',
+        descriptionPlaceholder: 'Ajouter votre description ici...',
+        washCareText: 'Laver à l\'eau froide. Ne pas utiliser d\'eau de javel. Sécher naturellement.',
+        paymentMethod: 'Mode de Paiement',
+        cashDZD: 'Espèces (DZD)',
+        name: 'Nom',
+        surname: 'Prénom',
+        phone: 'Téléphone',
+        order: 'Commander',
+        wilaya: 'Wilaya',
+        commune: 'Commune',
+        address: 'Adresse / GPS',
+        useGPS: 'Utiliser GPS',
+        cardNumber: 'Numéro de Carte',
+        cardHolder: 'Titulaire de la Carte',
+        cardExpiry: 'Date d\'expiration',
+        receivingAccount: 'Compte de Réception',
+        save: 'Enregistrer',
+        productPrice: 'Prix',
+        delivery: 'Livraison',
+        total: 'Total',
+        headingSize: 'Taille',
+        headingChest: 'Poitrine',
+        headingWaist: 'Tour de taille',
+        headingLength: 'Longueur',
+        invalidPhone: 'Numéro invalide. Doit commencer par 05, 06 ou 07 et contenir 10 chiffres.',
     }
 }
 
@@ -106,19 +159,42 @@ const sizeChartData = {
         { size: 'L', chest: '40-42 بوصة', waist: '34-36 بوصة', length: '30 بوصة' },
         { size: 'XL', chest: '42-44 بوصة', waist: '36-38 بوصة', length: '31 بوصة' },
         { size: 'XXL', chest: '44-46 بوصة', waist: '38-40 بوصة', length: '32 بوصة' },
+    ],
+    fr: [
+        { size: 'XS', chest: '86-91 cm', waist: '71-76 cm', length: '68 cm' },
+        { size: 'S', chest: '91-96 cm', waist: '76-81 cm', length: '71 cm' },
+        { size: 'M', chest: '96-101 cm', waist: '81-86 cm', length: '74 cm' },
+        { size: 'L', chest: '101-106 cm', waist: '86-91 cm', length: '76 cm' },
+        { size: 'XL', chest: '106-111 cm', waist: '91-96 cm', length: '79 cm' },
+        { size: 'XXL', chest: '111-116 cm', waist: '96-101 cm', length: '81 cm' },
     ]
 }
 
-export default function ProductDetail({ params: paramsPromise }) {
-    const params = use(paramsPromise)
+function ProductDetail() {
+    const params = useParams()
+    const pathname = usePathname()
+    const { id: rawId } = params || {}
+    const id = Array.isArray(rawId) ? rawId[0] : rawId
+
+    // Extract locale from URL pathname (source of truth for [locale] routes)
+    const pathSegments = pathname?.split('/').filter(Boolean) || []
+    const validLocales = ['en', 'fr', 'ar']
+    const pathLocale = pathSegments[0]
+    const locale = validLocales.includes(pathLocale) ? pathLocale : 'en'
+    const isArabic = locale === 'ar'
+
+    // Fallback if translations missing
+    const t = translations[locale] || translations.en
+    const { user } = useAuth() || {}
+
     const searchParams = useSearchParams()
-    const { id, locale } = params
+
+    // Use the unwrapped ID
     const [product, setProduct] = useState(getProductById(id) || products[0])
     const [allProducts, setAllProducts] = useState(products)
-    const t = translations[locale] || translations.ar
-    const { user } = useAuth() || {}
     const { toggleWishlist, isInWishlist } = useWishlist() || {}
     const [wishlistMsg, setWishlistMsg] = useState('')
+    const [isAuthOpen, setIsAuthOpen] = useState(false)
 
     // Load live product data from Firestore
     useEffect(() => {
@@ -127,8 +203,8 @@ export default function ProductDetail({ params: paramsPromise }) {
     }, [id])
 
     // determine available colors/sizes from product data only (no defaults)
-    const colors = product?.colors?.length ? product.colors : []
-    const sizes = product?.sizes?.length ? product.sizes : []
+    const colors = useMemo(() => product?.colors?.length ? product.colors : [], [product?.colors])
+    const sizes = useMemo(() => product?.sizes?.length ? product.sizes : [], [product?.sizes])
 
     // Build images array from Firestore images[] or fall back to single imageUrl/image
     const productImages = product?.images?.length
@@ -150,14 +226,14 @@ export default function ProductDetail({ params: paramsPromise }) {
     useEffect(() => {
         if (colors.length === 1) setSelectedColor(colors[0])
         else if (colors.length > 1 && !selectedColor) setSelectedColor(null)
-    }, [colors.length])
+    }, [colors, selectedColor])
 
     useEffect(() => {
         const fromUrl = urlSize && sizes.includes(urlSize) ? urlSize : null
         if (fromUrl) { setSelectedSize(fromUrl); return }
         if (sizes.length === 1) setSelectedSize(sizes[0])
         else if (sizes.length > 1 && !selectedSize) setSelectedSize(null)
-    }, [sizes.length])
+    }, [sizes, selectedSize, urlSize])
     const [quantity, setQuantity] = useState(1)
     const [paymentMethod, setPaymentMethod] = useState('cashDZD')
     const [showOrderForm, setShowOrderForm] = useState(false)
@@ -183,15 +259,19 @@ export default function ProductDetail({ params: paramsPromise }) {
 
     const handleSubmitOrder = async () => {
         if (!custName) {
-            alert(locale === 'ar' ? 'يرجى إدخال الاسم' : 'Please enter your name')
+            alert(locale === 'ar' ? 'يرجى إدخال الاسم' : locale === 'fr' ? 'Veuillez entrer votre nom' : 'Please enter your name')
             return
         }
         if (!custPhone) {
-            alert(locale === 'ar' ? 'يرجى إدخال رقم الهاتف' : 'Please enter your phone number')
+            alert(locale === 'ar' ? 'يرجى إدخال رقم الهاتف' : locale === 'fr' ? 'Veuillez entrer votre numéro de téléphone' : 'Please enter your phone number')
+            return
+        }
+        if (!/^0[567]\d{8}$/.test(custPhone.replace(/\s/g, ''))) {
+            alert(t.invalidPhone)
             return
         }
         if (!selectedWilaya) {
-            alert(locale === 'ar' ? 'يرجى اختيار الولاية' : 'Please select a wilaya')
+            alert(locale === 'ar' ? 'يرجى اختيار الولاية' : locale === 'fr' ? 'Veuillez sélectionner une wilaya' : 'Please select a wilaya')
             return
         }
         try {
@@ -238,7 +318,7 @@ export default function ProductDetail({ params: paramsPromise }) {
             }, 2000)
         } catch (err) {
             console.error('Order error:', err)
-            alert(locale === 'ar' ? 'حدث خطأ، حاول مجدداً' : 'Something went wrong, please try again')
+            alert(locale === 'ar' ? 'حدث خطأ، حاول مجدداً' : locale === 'fr' ? 'Une erreur est survenue, veuillez réessayer' : 'Something went wrong, please try again')
         } finally {
             setOrderLoading(false)
         }
@@ -295,11 +375,17 @@ export default function ProductDetail({ params: paramsPromise }) {
     }
 
     const relatedProducts = allProducts.filter(p => p.id !== product.id).slice(0, 4)
-    const isArabic = locale === 'ar'
-    const productName = isArabic
-        ? (product.nameAr || product.name || '')
-        : (product.nameEn || product.name_en || product.name || '')
-    const productDescription = isArabic ? product.description : (product.descriptionEn || product.description_en || product.description)
+    const productName = (locale === 'ar' && product.nameAr) ? product.nameAr :
+        (locale === 'ar' && product.name) ? product.name :
+            (locale === 'fr' && product.nameFr) ? product.nameFr :
+                (locale === 'fr' && product.name_fr) ? product.name_fr :
+                    (product.nameEn || product.name_en || product.name || '')
+
+    const productDescription = locale === 'ar'
+        ? (product.descriptionAr || product.description || '')
+        : locale === 'fr'
+            ? (product.descriptionFr || product.description_fr || product.description || '')
+            : (product.description || product.descriptionEn || product.description_en || '')
 
     return (
         <main className="min-h-screen textured-bg pt-16 sm:pt-20 pb-20">
@@ -323,8 +409,8 @@ export default function ProductDetail({ params: paramsPromise }) {
                             onTouchEnd={handleDragEnd}
                         >
                             <motion.div
-                                className="flex h-full"
-                                style={{ width: `${Math.max(productImages.length, 1) * 100}%` }}
+                                className="flex"
+                                style={{ width: `${Math.max(productImages.length, 1) * 100}%`, height: '100%' }}
                                 initial={{ x: 0 }}
                                 animate={{ x: `-${currentImageIndex * (100 / Math.max(productImages.length, 1))}%` }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -332,15 +418,14 @@ export default function ProductDetail({ params: paramsPromise }) {
                                 {productImages.map((imgSrc, idx) => (
                                     <div
                                         key={idx}
-                                        className="relative h-full shrink-0"
-                                        style={{ width: `${100 / Math.max(productImages.length, 1)}%` }}
+                                        style={{ position: 'relative', width: `${100 / Math.max(productImages.length, 1)}%`, height: '100%', flexShrink: 0 }}
                                     >
                                         <Image
                                             src={cloudinaryOptimized(imgSrc)}
                                             alt={`${productName} - ${idx + 1}`}
                                             fill
                                             className="object-cover"
-                                            priority
+                                            priority={idx < 4}
                                             unoptimized
                                             sizes="(max-width: 768px) 100vw, 50vw"
                                             draggable={false}
@@ -374,7 +459,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                         {/* Color Selection - only if product has colors */}
                         {colors.length > 0 && (
                             <div>
-                                <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-[0.2em] mb-3">{t.color}</h3>
+                                <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-[0.2em] mb-3" style={{ fontFamily: isArabic ? 'var(--font-amiri)' : 'var(--font-playfair)' }}>{t.color}</h3>
                                 <div className="flex gap-1.5 sm:gap-2 md:gap-3 flex-wrap">
                                     {colors.map((color) => (
                                         <button
@@ -396,7 +481,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                         {sizes.length > 0 && (
                             <div>
                                 <div className="flex items-center gap-2 mb-3">
-                                    <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-[0.2em]">{t.size}</h3>
+                                    <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-[0.2em]" style={{ fontFamily: isArabic ? 'var(--font-amiri)' : 'var(--font-playfair)' }}>{t.size}</h3>
                                     <button
                                         onClick={() => setShowSizeChart(true)}
                                         className="text-xs sm:text-sm text-[#A67B5B] hover:underline"
@@ -423,7 +508,7 @@ export default function ProductDetail({ params: paramsPromise }) {
 
                         {/* Quantity Selection */}
                         <div>
-                            <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-[0.2em] mb-3">{t.quantity}</h3>
+                            <h3 className="text-xs sm:text-sm md:text-base uppercase tracking-[0.2em] mb-3" style={{ fontFamily: isArabic ? 'var(--font-amiri)' : 'var(--font-playfair)' }}>{t.quantity}</h3>
                             <div className="flex items-center gap-3 border border-[#D1CCC6] w-fit">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -449,7 +534,9 @@ export default function ProductDetail({ params: paramsPromise }) {
                             <p className="text-[11px] text-[#A67B5B] -mb-1">
                                 {locale === 'ar'
                                     ? `${colors.length > 1 && !selectedColor ? 'اختر اللون' : ''} ${sizes.length > 1 && !selectedSize ? 'واختر المقاس' : ''}`.trim()
-                                    : `Please select ${colors.length > 1 && !selectedColor ? 'a color' : ''}${colors.length > 1 && !selectedColor && sizes.length > 1 && !selectedSize ? ' and ' : ''}${sizes.length > 1 && !selectedSize ? 'a size' : ''}`
+                                    : locale === 'fr'
+                                        ? `Veuillez sélectionner ${colors.length > 1 && !selectedColor ? 'une couleur' : ''}${colors.length > 1 && !selectedColor && sizes.length > 1 && !selectedSize ? ' et ' : ''}${sizes.length > 1 && !selectedSize ? 'une taille' : ''}`
+                                        : `Please select ${colors.length > 1 && !selectedColor ? 'a color' : ''}${colors.length > 1 && !selectedColor && sizes.length > 1 && !selectedSize ? ' and ' : ''}${sizes.length > 1 && !selectedSize ? 'a size' : ''}`
                                 }
                             </p>
                         )}
@@ -465,15 +552,14 @@ export default function ProductDetail({ params: paramsPromise }) {
                             <button
                                 onClick={async () => {
                                     if (!user) {
-                                        setWishlistMsg(locale === 'ar' ? 'سجّل دخولك لحفظ المنتجات' : 'Sign in to save items')
-                                        setTimeout(() => setWishlistMsg(''), 2500)
+                                        setIsAuthOpen(true)
                                         return
                                     }
                                     await toggleWishlist(product.id)
                                 }}
                                 className={`p-3 sm:p-4 border transition-colors ${isInWishlist?.(product.id)
-                                        ? 'border-[#A67B5B] text-[#A67B5B] bg-[#FDF6F0]'
-                                        : 'border-[#D1CCC6] text-[#000000] hover:border-[#A67B5B]'
+                                    ? 'border-[#A67B5B] text-[#A67B5B] bg-[#FDF6F0]'
+                                    : 'border-[#D1CCC6] text-[#000000] hover:border-[#A67B5B]'
                                     }`}
                                 aria-label={isInWishlist?.(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
                             >
@@ -603,14 +689,25 @@ export default function ProductDetail({ params: paramsPromise }) {
 
                                         {/* Price summary */}
                                         <div className="border-t border-[#eee] pt-3 mt-1 space-y-1.5">
-                                            <div className="flex justify-between text-sm font-semibold text-black">
-                                                <span>{t.productPrice} {quantity > 1 ? `× ${quantity}` : ''}</span>
+                                            <div className="flex justify-between text-sm text-black">
+                                                <span>{t.productPrice}</span>
+                                                <span>DA {product.price}</span>
+                                            </div>
+                                            {quantity > 1 && (
+                                                <div className="flex justify-between text-sm text-black">
+                                                    <span>{t.quantity}</span>
+                                                    <span>× {quantity}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between text-sm font-bold text-black pt-1 border-t border-[#eee]">
+                                                <span>{t.total}</span>
+                                                <span>DA {product.price * quantity}</span>
                                             </div>
                                         </div>
 
                                         {orderSuccess ? (
                                             <div className="w-full bg-green-600 text-white py-2 mt-4 text-center text-sm">
-                                                {locale === 'ar' ? '✓ تم الطلب بنجاح!' : '✓ Order placed successfully!'}
+                                                {locale === 'ar' ? '✓ تم الطلب بنجاح!' : locale === 'fr' ? '✓ Commande passée avec succès !' : '✓ Order placed successfully!'}
                                             </div>
                                         ) : (
                                             <button
@@ -619,7 +716,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                                                 className="w-full bg-black text-white py-2 mt-4 disabled:opacity-50"
                                             >
                                                 {orderLoading
-                                                    ? (locale === 'ar' ? 'جاري الإرسال...' : 'Submitting...')
+                                                    ? (locale === 'ar' ? 'جاري الإرسال...' : locale === 'fr' ? 'Envoi en cours...' : 'Submitting...')
                                                     : t.order}
                                             </button>
                                         )}
@@ -661,7 +758,11 @@ export default function ProductDetail({ params: paramsPromise }) {
                             </button>
                             {showWashCare && (
                                 <div className="py-3 text-xs sm:text-sm text-[#666666] leading-relaxed">
-                                    {product.washCare || t.washCareText}
+                                    {locale === 'ar'
+                                        ? (product.washCareAr || product.washCare || t.washCareText)
+                                        : locale === 'fr'
+                                            ? (product.washCareFr || product.washCare || t.washCareText)
+                                            : (product.washCare || t.washCareText)}
                                 </div>
                             )}
                         </div>
@@ -687,7 +788,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                                             {(p.imageUrl || p.images?.[0] || p.image) && (
                                                 <Image
                                                     src={cloudinaryOptimized(p.imageUrl || p.images?.[0] || p.image)}
-                                                    alt={isArabic ? (p.nameAr || p.name || '') : (p.nameEn || p.name_en || p.name || '')}
+                                                    alt={locale === 'ar' ? (p.nameAr || p.name || '') : locale === 'fr' ? (p.nameFr || p.name_fr || p.nameEn || p.name_en || p.name || '') : (p.nameEn || p.name_en || p.name || '')}
                                                     fill
                                                     unoptimized
                                                     className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
@@ -695,7 +796,7 @@ export default function ProductDetail({ params: paramsPromise }) {
                                                 />
                                             )}
                                         </div>
-                                        <h3 className="text-xs sm:text-sm font-normal text-[#000000]">{isArabic ? (p.nameAr || p.name || '') : (p.nameEn || p.name_en || p.name || '')}</h3>
+                                        <h3 className="text-xs sm:text-sm font-normal text-[#000000]">{locale === 'ar' ? (p.nameAr || p.name || '') : locale === 'fr' ? (p.nameFr || p.name_fr || p.nameEn || p.name_en || p.name || '') : (p.nameEn || p.name_en || p.name || '')}</h3>
                                         <span className="text-xs sm:text-sm text-[#000000]">DA {p.price}</span>
                                     </Link>
                                 </motion.div>
@@ -726,10 +827,10 @@ export default function ProductDetail({ params: paramsPromise }) {
                                 <table className="w-full text-xs sm:text-sm">
                                     <thead>
                                         <tr className="border-b">
-                                            <th className="text-left py-2 px-3 font-light">Size</th>
-                                            <th className="text-left py-2 px-3 font-light">Chest</th>
-                                            <th className="text-left py-2 px-3 font-light">Waist</th>
-                                            <th className="text-left py-2 px-3 font-light">Length</th>
+                                            <th className="text-left py-2 px-3 font-light">{t.headingSize}</th>
+                                            <th className="text-left py-2 px-3 font-light">{t.headingChest}</th>
+                                            <th className="text-left py-2 px-3 font-light">{t.headingWaist}</th>
+                                            <th className="text-left py-2 px-3 font-light">{t.headingLength}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -748,50 +849,24 @@ export default function ProductDetail({ params: paramsPromise }) {
                     </div>
                 )}
 
-                {/* Custom Description Modal */}
+                {/* Custom Description Modal - Disabled
                 {false && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-100 p-4">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="bg-white max-w-md w-full"
-                        >
-                            <div className="flex items-center justify-between p-4 sm:p-6 border-b">
-                                <h2 className="text-lg sm:text-xl font-light text-[#000000]">{t.customDescription}</h2>
-                                <button
-                                    onClick={() => setShowDescriptionModal(false)}
-                                    className="p-2 hover:bg-gray-100 text-[#000000] transition-colors"
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
-
-                            <div className="p-4 sm:p-6 space-y-4">
-                                <textarea
-                                    value={customDescription}
-                                    onChange={(e) => setCustomDescription(e.target.value)}
-                                    placeholder={t.descriptionPlaceholder}
-                                    className="w-full h-32 p-3 border border-[#D1CCC6] resize-none focus:outline-none focus:border-[#A67B5B] text-sm text-[#000000]"
-                                />
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setShowDescriptionModal(false)}
-                                        className="flex-1 py-2.5 border border-[#D1CCC6] text-[#000000] hover:border-[#A67B5B] transition-colors text-sm font-light"
-                                    >
-                                        {t.close}
-                                    </button>
-                                    <button
-                                        onClick={() => setShowDescriptionModal(false)}
-                                        className="flex-1 py-2.5 bg-[#000000] text-white hover:bg-[#333333] transition-colors text-sm font-light"
-                                    >
-                                        {t.save}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
+                       ...
                     </div>
                 )}
+                */}
+
+                <AuthOverlay locale={locale} isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
             </div>
         </main>
+    )
+}
+
+export default function ProductDetailPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" /></div>}>
+            <ProductDetail />
+        </Suspense>
     )
 }

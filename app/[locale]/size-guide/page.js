@@ -39,6 +39,25 @@ const content = {
         length: 'Length (cm)',
         note: 'All measurements are in centimetres. If you are between sizes, choose the larger one.',
     },
+    fr: {
+        title: 'Guide des Tailles',
+        subtitle: 'Trouvez votre taille parfaite',
+        howTo: 'Comment se mesurer',
+        howToSteps: [
+            { label: 'Poitrine', desc: 'Mesurez la partie la plus large de votre poitrine, en gardant le ruban horizontal.' },
+            { label: 'Taille', desc: 'Mesurez la partie la plus étroite de votre taille, juste au-dessus du nombril.' },
+            { label: 'Hanches', desc: 'Mesurez la partie la plus large de vos hanches.' },
+            { label: 'Longueur', desc: 'Tenez-vous droit et mesurez du sommet de la tête au talon.' },
+        ],
+        tops: 'Hauts — Chemises & Vestes',
+        bottoms: 'Bas — Pantalons',
+        size: 'Taille',
+        chest: 'Poitrine (cm)',
+        waist: 'Taille (cm)',
+        hips: 'Hanches (cm)',
+        length: 'Longueur (cm)',
+        note: 'Toutes les mesures sont en centimètres. Si vous êtes entre deux tailles, choisissez la plus grande.',
+    },
 }
 
 const topsData = [
@@ -84,9 +103,14 @@ function SizeTable({ headers, rows }) {
     )
 }
 
-export default function SizeGuide({ params }) {
-    const locale = params?.locale || 'ar'
-    const c = content[locale] || content.ar
+import { useParams } from 'next/navigation'
+
+// ... existing code ...
+
+export default function SizeGuide() {
+    const params = useParams()
+    const locale = params?.locale || 'en'
+    const c = content[locale] || content.en
 
     return (
         <main className="min-h-screen pt-20">

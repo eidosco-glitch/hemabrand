@@ -19,6 +19,7 @@ export default {
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         arabic: ['var(--font-cairo)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'var(--font-amiri)', 'serif'],
       },
     },
   },

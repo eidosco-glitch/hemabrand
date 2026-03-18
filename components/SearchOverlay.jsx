@@ -21,6 +21,11 @@ const ui = {
         noResults: 'No results found',
         results: 'Results',
     },
+    fr: {
+        placeholder: 'Rechercher un produit...',
+        noResults: 'Aucun résultat trouvé',
+        results: 'Résultats',
+    },
 }
 
 export default function SearchOverlay({ locale, isOpen, onClose }) {
@@ -37,9 +42,10 @@ export default function SearchOverlay({ locale, isOpen, onClose }) {
         return allProducts.filter(p => {
             const nameAr = (p.nameAr || p.name || '').toLowerCase()
             const nameEn = (p.nameEn || p.name_en || '').toLowerCase()
+            const nameFr = (p.nameFr || '').toLowerCase()
             const desc = (p.description || p.description_en || '').toLowerCase()
             const category = (p.category || '').toLowerCase()
-            return nameAr.includes(q) || nameEn.includes(q) || desc.includes(q) || category.includes(q)
+            return nameAr.includes(q) || nameEn.includes(q) || nameFr.includes(q) || desc.includes(q) || category.includes(q)
         }).slice(0, 8)
     }, [query, allProducts])
 
@@ -83,7 +89,9 @@ export default function SearchOverlay({ locale, isOpen, onClose }) {
     const getDisplayName = (p) =>
         locale === 'ar'
             ? (p.nameAr || p.name || p.nameEn || p.name_en || '')
-            : (p.nameEn || p.name_en || p.nameAr || p.name || '')
+            : locale === 'fr'
+                ? (p.nameFr || p.name || p.nameEn || p.name_en || '')
+                : (p.nameEn || p.name_en || p.nameAr || p.name || '')
 
     const getImageSrc = (p) => p.imageUrl || p.images?.[0] || p.image || null
 

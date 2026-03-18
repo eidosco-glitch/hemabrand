@@ -8,6 +8,10 @@ const translations = {
     en: {
         title: 'New Arrivals',
         description: 'Discover our latest luxury designs',
+    },
+    fr: {
+        title: 'Nouveautés',
+        description: 'Découvrez nos dernières créations de luxe',
     }
 }
 
@@ -27,7 +31,7 @@ export default async function NewArrivals({ params }) {
                     <h1 className="text-4xl md:text-5xl font-light mb-4 text-black" style={{ fontFamily: 'var(--font-playfair)' }}>{t.title}</h1>
                     <p className="text-black text-base" style={{ fontFamily: 'var(--font-inter)' }}>{t.description}</p>
                 </div>
-                <ProductGrid locale={locale} />
+                <ProductGrid locale={locale} newArrivals />
             </div>
         </main>
     )

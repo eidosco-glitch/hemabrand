@@ -35,20 +35,60 @@ const ui = {
         or: 'Or',
         passwordMismatch: "Passwords don't match",
     },
+    fr: {
+        signIn: 'Se Connecter',
+        signUp: 'S\'inscrire',
+        email: 'E-mail',
+        password: 'Mot de passe',
+        name: 'Nom Complet',
+        confirmPassword: 'Confirmer le mot de passe',
+        continueGoogle: 'Continuer avec Google',
+        or: 'Ou',
+        passwordMismatch: 'Les mots de passe ne correspondent pas',
+    },
 }
 
-function friendlyError(code) {
+function friendlyError(code, locale) {
     const map = {
-        'auth/user-not-found': 'No account found with this email.',
-        'auth/wrong-password': 'Incorrect password.',
-        'auth/email-already-in-use': 'This email is already registered.',
-        'auth/weak-password': 'Password must be at least 6 characters.',
-        'auth/invalid-email': 'Please enter a valid email.',
-        'auth/popup-closed-by-user': '',
-        'auth/too-many-requests': 'Too many attempts. Please try again later.',
-        'auth/invalid-credential': 'Incorrect email or password.',
+        'auth/user-not-found': {
+            en: 'No account found with this email.',
+            ar: 'لا يوجد حساب بهذا البريد.',
+            fr: 'Aucun compte trouvé avec cet e-mail.'
+        },
+        'auth/wrong-password': {
+            en: 'Incorrect password.',
+            ar: 'كلمة المرور غير صحيحة.',
+            fr: 'Mot de passe incorrect.'
+        },
+        'auth/email-already-in-use': {
+            en: 'This email is already registered.',
+            ar: 'هذا البريد مسجل بالفعل.',
+            fr: 'Cet e-mail est déjà enregistré.'
+        },
+        'auth/weak-password': {
+            en: 'Password must be at least 6 characters.',
+            ar: 'يجب أن تكون كلمة المرور 6 أحرف على الأقل.',
+            fr: 'Le mot de passe doit contenir au moins 6 caractères.'
+        },
+        'auth/invalid-email': {
+            en: 'Please enter a valid email.',
+            ar: 'يرجى إدخال بريد إلكتروني صالح.',
+            fr: 'Veuillez entrer un e-mail valide.'
+        },
+        'auth/too-many-requests': {
+            en: 'Too many attempts. Please try again later.',
+            ar: 'محاولات كثيرة جداً. يرجى المحاولة لاحقاً.',
+            fr: 'Trop de tentatives. Veuillez réessayer plus tard.'
+        },
+        'auth/invalid-credential': {
+            en: 'Incorrect email or password.',
+            ar: 'البريد أو كلمة المرور غير صحيحة.',
+            fr: 'E-mail ou mot de passe incorrect.'
+        },
     }
-    return map[code] || 'Something went wrong. Please try again.'
+    const msg = map[code]
+    if (!msg) return locale === 'ar' ? 'حدث خطأ ما.' : locale === 'fr' ? 'Une erreur est survenue.' : 'Something went wrong.'
+    return msg[locale] || msg.en
 }
 
 function GoogleIcon() {
@@ -119,7 +159,7 @@ export default function AuthOverlay({ locale, isOpen, onClose }) {
             }
             handleClose()
         } catch (err) {
-            const msg = friendlyError(err.code)
+            const msg = friendlyError(err.code, locale)
             if (msg) setError(msg)
         } finally {
             setLoading(false)
@@ -133,7 +173,7 @@ export default function AuthOverlay({ locale, isOpen, onClose }) {
             await signInWithPopup(auth, new GoogleAuthProvider())
             handleClose()
         } catch (err) {
-            const msg = friendlyError(err.code)
+            const msg = friendlyError(err.code, locale)
             if (msg) setError(msg)
         } finally {
             setLoading(false)

@@ -1,15 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Menu, Search, User, ShoppingBag, X } from 'lucide-react'
+import { Menu, Search, User, ShoppingBag, X, Globe } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname, useRouter } from 'next/navigation'
 import SearchOverlay from './SearchOverlay'
 import AuthOverlay from './AuthOverlay'
 import WishlistOverlay from './WishlistOverlay'
 import SettingsOverlay from './SettingsOverlay'
 import { useAuth } from '@/context/AuthContext'
+import { useCart } from '@/context/CartContext'
+import CartOverlay from './CartOverlay'
 
 // Simple translations object
 const translations = {
@@ -20,7 +23,6 @@ const translations = {
     newArrivals: '    المجموعة الجديدة',
     shirts: 'القمصان',
     trousers: 'السراويل',
-    outerwear: 'السترات',
   },
   en: {
     home: 'Home',
@@ -29,7 +31,14 @@ const translations = {
     newArrivals: 'New Arrivals',
     shirts: 'Shirts',
     trousers: 'Trousers',
-    outerwear: 'Outerwear',
+  },
+  fr: {
+    home: 'Accueil',
+    shop: 'Boutique',
+    contact: 'Contact',
+    newArrivals: 'Nouveautés',
+    shirts: 'Chemises',
+    trousers: 'Pantalons',
   }
 }
 
@@ -45,7 +54,26 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isWishlistOpen, setIsWishlistOpen] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false)
+  const [isMobileLangOpen, setIsMobileLangOpen] = useState(false)
   const { user, logout } = useAuth() || {}
+  const { totalItems, setIsOpen: setCartOpen } = useCart() || {}
+  const pathname = usePathname()
+  const router = useRouter()
+
+  const switchLocale = (newLocale) => {
+    // Replace the first path segment (locale) with new locale
+    const segments = pathname.split('/')
+    // pathname starts with /, so segments[0] is empty, segments[1] is locale
+    if (segments.length > 1) {
+      segments[1] = newLocale
+      const newPath = segments.join('/')
+      router.push(newPath)
+    } else {
+      router.push(`/${newLocale}`)
+    }
+    setIsLangMenuOpen(false)
+  }
 
   // Lock scroll when menu is open (target both html and body for iOS Safari compatibility)
   useEffect(() => {
@@ -91,7 +119,6 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
     { key: 'newArrivals', href: `/${locale}/new-arrivals` },
     { key: 'shirts', href: `/${locale}/shirts` },
     { key: 'trousers', href: `/${locale}/trousers` },
-    { key: 'outerwear', href: `/${locale}/outerwear` },
   ]
 
   const mainMenuItems = [
@@ -100,7 +127,7 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
     { key: 'contact', href: `/${locale}/contact` },
   ]
 
-  const otherLocale = locale === 'ar' ? 'en' : 'ar'
+  const nextLocale = locale === 'en' ? 'fr' : locale === 'fr' ? 'ar' : 'en'
 
   return (
     <>
@@ -225,14 +252,14 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
                           className="w-full text-start px-4 py-2 text-sm text-[#1A1A1A] hover:bg-[#F8F3EE] transition-colors"
                           style={{ fontFamily: isRTL ? 'var(--font-cairo)' : 'var(--font-inter)' }}
                         >
-                          {locale === 'ar' ? '❤ المفضلة' : '❤ Wishlist'}
+                          {locale === 'ar' ? '❤ المفضلة' : locale === 'fr' ? '❤ Favoris' : '❤ Wishlist'}
                         </button>
                         <button
                           onClick={() => { setIsUserMenuOpen(false); setIsSettingsOpen(true) }}
                           className="w-full text-start px-4 py-2 text-sm text-[#1A1A1A] hover:bg-[#F8F3EE] transition-colors"
                           style={{ fontFamily: isRTL ? 'var(--font-cairo)' : 'var(--font-inter)' }}
                         >
-                          {locale === 'ar' ? '⚙ الإعدادات' : '⚙ Settings'}
+                          {locale === 'ar' ? '⚙ الإعدادات' : locale === 'fr' ? '⚙ Paramètres' : '⚙ Settings'}
                         </button>
                         <hr className="border-[#E8DDD5]" />
                         <button
@@ -240,7 +267,7 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
                           className="w-full text-start px-4 py-2 text-sm text-[#1A1A1A] hover:bg-[#F8F3EE] transition-colors"
                           style={{ fontFamily: isRTL ? 'var(--font-cairo)' : 'var(--font-inter)' }}
                         >
-                          {locale === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}
+                          {locale === 'ar' ? 'تسجيل الخروج' : locale === 'fr' ? 'Déconnexion' : 'Sign Out'}
                         </button>
                       </div>
                     </>
@@ -257,21 +284,55 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
               )}
             </div>
 
-            <button className={`p-1.5 sm:p-2 hover:bg-black/5 rounded-full transition-colors relative ${iconColor}`}>
+            <button
+              onClick={() => setCartOpen?.(true)}
+              className={`p-1.5 sm:p-2 hover:bg-black/5 rounded-full transition-colors relative ${iconColor}`}
+            >
               <ShoppingBag size={20} strokeWidth={1.5} />
-              <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#A67B5B] rounded-full" />
+              {totalItems > 0 && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-[#A67B5B] rounded-full" />}
             </button>
 
-            {/* Language Icon - Desktop Only */}
-            <button
-              onClick={() => {
-                window.location.href = `/${otherLocale}`
-              }}
-              className={`p-1.5 sm:p-2 hover:bg-black/5 rounded-full transition-colors hidden lg:flex text-[11px] font-medium tracking-widest ${iconColor}`}
-              title={locale === 'ar' ? 'English' : 'العربية'}
-            >
-              {locale === 'ar' ? 'EN' : 'AR'}
-            </button>
+            {/* Language Dropdown - Desktop Only */}
+            <div className="relative hidden lg:block">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLangMenuOpen(!isLangMenuOpen);
+                }}
+                className={`p-1.5 sm:p-2 hover:bg-black/5 rounded-full transition-colors flex items-center justify-center gap-1 ${iconColor}`}
+                aria-label="Select language"
+              >
+                <span className="text-[11px] font-medium tracking-widest leading-none">{locale.toUpperCase()}</span>
+              </button>
+
+              <AnimatePresence>
+                {isLangMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40 cursor-default" onClick={() => setIsLangMenuOpen(false)} />
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      transition={{ duration: 0.2 }}
+                      className={`absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-xl py-1 min-w-[100px] z-50 border border-[#E8DDD5] flex flex-col overflow-hidden`}
+                    >
+                      {['en', 'fr', 'ar'].map((l) => (
+                        <button
+                          key={l}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            switchLocale(l);
+                          }}
+                          className={`w-full px-4 py-2.5 text-xs hover:bg-[#F8F3EE] hover:text-[#A67B5B] transition-colors text-center font-medium ${locale === l ? 'text-[#A67B5B] bg-[#F8F3EE]/50 font-bold' : 'text-[#1A1A1A]'}`}
+                        >
+                          {l === 'en' ? 'English' : l === 'fr' ? 'Français' : 'العربية'}
+                        </button>
+                      ))}
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </header>
@@ -296,12 +357,39 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
               </button>
               {/* HEMA always centered */}
               <span className="absolute left-1/2 -translate-x-1/2" style={{ fontFamily: 'Maharlika', fontWeight: '250', letterSpacing: '0.05em', fontSize: '1.4rem', color: '#1A1A1A' }}>HEMA</span>
-              <button
-                onClick={() => { window.location.href = `/${otherLocale}` }}
-                className="text-[11px] font-medium tracking-widest text-[#1A1A1A] hover:text-[#A67B5B] transition-colors"
-              >
-                {locale === 'ar' ? 'EN' : 'AR'}
-              </button>
+
+              <div className="relative">
+                <button
+                  onClick={() => setIsMobileLangOpen(!isMobileLangOpen)}
+                  className="px-3 py-1.5 text-[11px] font-medium tracking-widest text-[#1A1A1A] border border-[#D1CCC6] rounded-full hover:bg-[#A67B5B] hover:text-white hover:border-[#A67B5B] transition-colors flex items-center gap-1 bg-[#F8F3EE]"
+                >
+                  {locale.toUpperCase()}
+                </button>
+                <AnimatePresence>
+                  {isMobileLangOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      className="absolute top-full text-center right-0 mt-2 bg-[#F8F3EE] rounded shadow-lg py-1 min-w-[60px] z-50 border border-[#E8DDD5]"
+                    >
+                      {['en', 'fr', 'ar'].filter(l => l !== locale).map((l) => (
+                        <button
+                          key={l}
+                          onClick={() => {
+                            switchLocale(l);
+                            setIsMobileLangOpen(false);
+                            setIsMenuOpen(false);
+                          }}
+                          className="block w-full px-3 py-2 text-[11px] uppercase font-medium hover:bg-[#E8DDD5] hover:text-[#A67B5B] transition-colors text-[#1A1A1A]"
+                        >
+                          {l.toUpperCase()}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
             <div className="flex flex-col h-[calc(100vh-56px)]" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -318,7 +406,7 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
                       <div>
                         <button
                           onClick={() => setIsShopMobileOpen(!isShopMobileOpen)}
-                          className="flex items-center gap-2 text-2xl sm:text-3xl font-light text-[#1A1A1A] hover:text-[#A67B5B] transition-colors"
+                          className="flex items-center gap-2 text-2xl sm:text-3xl font-serif font-light text-[#1A1A1A] hover:text-[#A67B5B] transition-colors"
                         >
                           {t[item.key]}
                           <span className="text-base leading-none text-[#A67B5B]">{isShopMobileOpen ? '−' : '+'}</span>
@@ -350,7 +438,7 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
                       <Link
                         href={item.href}
                         onClick={() => setIsMenuOpen(false)}
-                        className="text-2xl sm:text-3xl font-light text-[#1A1A1A] hover:text-[#A67B5B] transition-colors"
+                        className="text-2xl sm:text-3xl font-serif font-light text-[#1A1A1A] hover:text-[#A67B5B] transition-colors"
                       >
                         {t[item.key]}
                       </Link>
@@ -421,7 +509,11 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
                     className="text-center text-lg sm:text-xl text-[#A67B5B]/80 leading-relaxed max-w-65"
                     style={{ fontFamily: isRTL ? 'var(--font-amiri)' : 'Maharlika' }}
                   >
-                    {isRTL ? '"الهمة عندها ناسها.. و أنت واحد منهم.."' : '"HEMA has its people… and you are one of them."'}
+                    {locale === 'ar'
+                      ? '"الهمة عندها ناسها.. و أنت واحد منهم.."'
+                      : locale === 'fr'
+                        ? '"HEMA a ses gens… et vous en faites partie."'
+                        : '"HEMA has its own people... and you are one of them."'}
                   </p>
                 </div>
               </motion.div>
@@ -478,6 +570,8 @@ export default function Navigation({ locale, hideOnScroll = true, isDark = true 
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
+
+      <CartOverlay locale={locale} />
     </>
   )
 }

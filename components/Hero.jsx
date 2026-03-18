@@ -10,9 +10,12 @@ const translations = {
     cta: ' تسوق الآن',
   },
   en: {
-
     title: 'Modern Elegance',
     cta: 'Shop Now',
+  },
+  fr: {
+    title: 'Élégance Moderne',
+    cta: 'Acheter Maintenant',
   }
 }
 
@@ -24,7 +27,7 @@ export default function Hero({ locale = 'en' }) {
   return (
     <section className="relative h-[75vh] flex flex-col items-center justify-end pt-14 lg:pt-20 pb-8 lg:pb-12">
       <Image
-        src="/hemahero.webp"
+        src="/hemahero1.webp"
         alt="HEMA Collection"
         fill
         priority
