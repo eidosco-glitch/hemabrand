@@ -69,6 +69,12 @@ export default async function Home({ params }) {
             </section>
 
             <ProductGrid locale={locale} />
+
+            {/* Category sections */}
+            <ProductGrid locale={locale} category="Top" title={{ en: 'Shirts', ar: 'القمصان', fr: 'Chemises' }} />
+            <ProductGrid locale={locale} category="Bottom" title={{ en: 'Trousers', ar: 'السراويل', fr: 'Pantalons' }} />
+            <ProductGrid locale={locale} category="Outfit" title={{ en: 'Outerwear', ar: 'السترات', fr: 'Extérieur' }} />
+
             <CollectionBanner locale={locale} />
             <BrandSections locale={locale} b={b} isRTL={isRTL} />
         </main>

@@ -6,8 +6,9 @@ import { products as staticProducts } from '@/lib/products'
 import { db } from '@/lib/firebase'
 import { collection, getDocs } from 'firebase/firestore'
 
-export default function ProductGrid({ locale, category, newArrivals }) {
-    const [products, setProducts] = useState(staticProducts)
+export default function ProductGrid({ locale, category, newArrivals, title }) {
+    const [products, setProducts] = useState([])
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -32,14 +33,22 @@ export default function ProductGrid({ locale, category, newArrivals }) {
                 }
             } catch (err) {
                 console.error('Failed to load products from Firestore:', err)
-                // static fallback remains
+            } finally {
+                setLoading(false)
             }
         }
         fetchProducts()
     }, [category, newArrivals])
 
+    if (!loading && products.length === 0) return null
+
+    const sectionTitle = title ? (title[locale] || title.en) : null
+
     return (
-        <section id="products" className="py-20 md:py-32 px-2 md:px-3 lg:px-6 max-w-[1440px] mx-auto bg-white">
+        <section id="products" className="py-20 md:py-32 px-2 md:px-3 lg:px-6 max-w-360 mx-auto bg-white">
+            {sectionTitle && (
+                <h2 className="text-3xl md:text-4xl font-light text-black mb-8 px-4">{sectionTitle}</h2>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                 {products.map((product, index) => (
                     <ProductCard key={product.id} product={product} index={index} locale={locale} />
